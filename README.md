@@ -1,5 +1,5 @@
 # QUdpMulticastListener
-application for testing QUdpSocket working with some network interfaces
+application for testing QUdpSocket (with joinMulticastGroup()) working with some network interfaces
 
 Это простое консольное приложение.
 
