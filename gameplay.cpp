@@ -13,82 +13,55 @@ Gameplay::Gameplay(QObject *parent)
 
 bool Gameplay::start()
 {
-	const int ports[]{50100,50102,50115,50124,50105,50106};
-	for (int oPort : ports)
+	const QString interfaces[]{
+		"eth1",
+		"enp4s0"
+	};
+	const int ports[]{
+		50100,
+	//	50102,
+	//	50115,
+	//	50124,
+		50105,
+	//	50106
+	};
+	const QString multicastGroups[]{
+		"239.0.0.1",
+		"239.0.0.2"
+	};
+
+	for (auto oInterface : interfaces)
 	{
-		QUdpSocket *_socket = new QUdpSocket(this);
-		connect(_socket, &QUdpSocket::readyRead, this, &Gameplay::onPendingDatagrams);
-
-		if (_socket->bind(QHostAddress::AnyIPv4, oPort, QUdpSocket::ShareAddress))
-		//if (_socket->bind(QHostAddress(""), oPort, QUdpSocket::ShareAddress))
+		for (auto oPort : ports)
 		{
-			qDebug() << "BOUND successfully";
+			QUdpSocket *socket = new QUdpSocket(this);
+			connect(socket, &QUdpSocket::readyRead, this, &Gameplay::onPendingDatagrams);
+			if (socket->bind(QHostAddress::AnyIPv4, oPort, QUdpSocket::ShareAddress))
+			//if (socket->bind(QHostAddress(""), oPort, QUdpSocket::ShareAddress))
+			{
+				qDebug() << "BOUND successfully";
+			}
+			else
+			{
+				qDebug() << "CAN NOT BIND:" << socket->errorString();
+				return false;
+			}
+			for (auto oGroup : multicastGroups)
+			{
+				if (socket->joinMulticastGroup(QHostAddress(oGroup), QNetworkInterface::interfaceFromName(oInterface)))
+				{
+					qDebug() << "SUBSCRIBED xxx.x.x.x first interface";
+				}
+				else
+				{
+					qDebug() << "CAN NOT SUBSCRIBE xxx.x.x.x first interface" << socket->errorString();
+					//return false;
+				}
+				qDebug() << QString("LISTENING ON PORT %1 STARTED (interface '%2')").arg(oPort).arg(oInterface);
+			}
 		}
-		else
-		{
-			qDebug() << "CAN NOT BIND:" << _socket->errorString();
-			return false;
-		}
-
-		//{{
-		QUdpSocket *_socket2 = new QUdpSocket(this);
-		connect(_socket2, &QUdpSocket::readyRead, this, &Gameplay::onPendingDatagrams2);
-
-		if (_socket2->bind(QHostAddress::AnyIPv4, oPort, QUdpSocket::ShareAddress))
-		{
-			qDebug() << "BOUND 2 successfully";
-		}
-		else
-		{
-			qDebug() << "CAN NOT BIND 2:" << _socket2->errorString();
-			return false;
-		}
-		//}}
-
-		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.1"), QNetworkInterface::interfaceFromName("eth1")))
-		{
-			qDebug() << "SUBSCRIBED 239.0.0.1 first interface";
-		}
-		else
-		{
-			qDebug() << "CAN NOT SUBSCRIBE 239.0.0.1 first interface" << _socket->errorString();
-			//return false;
-		}
-
-		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.1"), QNetworkInterface::interfaceFromName("enp4s0")))
-		{
-			qDebug() << "SUBSCRIBED 239.0.0.1 second interface";
-		}
-		else
-		{
-			qDebug() << "CAN NOT SUBSCRIBE 239.0.0.1 second interface" << _socket->errorString();
-			//return false;
-		}
-
-		/*
-		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.2"), QNetworkInterface::interfaceFromName("eth1")))
-		{
-			qDebug() << "SUBSCRIBED 239.0.0.2 first interface";
-		}
-		else
-		{
-			qDebug() << "CAN NOT SUBSCRIBE 239.0.0.2 first interfcae" << _socket->errorString();
-			//return false;
-		}
-
-		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.2"), QNetworkInterface::interfaceFromName("enp4s0")))
-		{
-			qDebug() << "SUBSCRIBED 239.0.0.2 second interface";
-		}
-		else
-		{
-			qDebug() << "CAN NOT SUBSCRIBE" << _socket->errorString();
-			//return false;
-		}
-		*/
 	}
 
-	qDebug() << "LISTENING ON PORT 50100 STARTED";
 	return true;
 }
 
@@ -109,16 +82,4 @@ void Gameplay::onPendingDatagrams()
 
 void Gameplay::onPendingDatagrams2()
 {
-	auto _socket2 = static_cast<QUdpSocket *>(sender());
-	while (_socket2->hasPendingDatagrams())
-	{
-		QNetworkDatagram datagram = _socket2->receiveDatagram();
-		if (datagram.isValid())
-		{
-			//datagram.data();
-			qDebug() << "SOME DATA RECEIVED ON PORT " << datagram.destinationPort() << ". Interface " << QNetworkInterface::interfaceFromIndex(datagram.interfaceIndex()).name();
-			//qDebug() << "SOME DATA RECEIVED ON PORT 50124" << datagram.senderAddress() << datagram.destinationAddress();
-			//qDebug() << datagram.data().toHex(' ');
-		}
-	}
 }
