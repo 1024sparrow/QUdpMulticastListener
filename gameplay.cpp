@@ -16,7 +16,7 @@ bool Gameplay::start()
 	const int ports[]{50100,50102,50115,50124,50105,50106};
 	for (int oPort : ports)
 	{
-		_socket = new QUdpSocket(this);
+		QUdpSocket *_socket = new QUdpSocket(this);
 		connect(_socket, &QUdpSocket::readyRead, this, &Gameplay::onPendingDatagrams);
 
 		if (_socket->bind(QHostAddress::AnyIPv4, oPort, QUdpSocket::ShareAddress))
@@ -31,7 +31,7 @@ bool Gameplay::start()
 		}
 
 		//{{
-		_socket2 = new QUdpSocket(this);
+		QUdpSocket *_socket2 = new QUdpSocket(this);
 		connect(_socket2, &QUdpSocket::readyRead, this, &Gameplay::onPendingDatagrams2);
 
 		if (_socket2->bind(QHostAddress::AnyIPv4, oPort, QUdpSocket::ShareAddress))
@@ -44,8 +44,6 @@ bool Gameplay::start()
 			return false;
 		}
 		//}}
-
-		QUdpSocket sock;
 
 		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.1"), QNetworkInterface::interfaceFromName("eth1")))
 		{
@@ -67,6 +65,7 @@ bool Gameplay::start()
 			//return false;
 		}
 
+		/*
 		if (_socket2->joinMulticastGroup(QHostAddress("239.0.0.2"), QNetworkInterface::interfaceFromName("eth1")))
 		{
 			qDebug() << "SUBSCRIBED 239.0.0.2 first interface";
@@ -86,6 +85,7 @@ bool Gameplay::start()
 			qDebug() << "CAN NOT SUBSCRIBE" << _socket->errorString();
 			//return false;
 		}
+		*/
 	}
 
 	qDebug() << "LISTENING ON PORT 50100 STARTED";
@@ -94,6 +94,7 @@ bool Gameplay::start()
 
 void Gameplay::onPendingDatagrams()
 {
+	auto _socket = static_cast<QUdpSocket *>(sender());
 	while (_socket->hasPendingDatagrams())
 	{
 		QNetworkDatagram datagram = _socket->receiveDatagram();
@@ -108,6 +109,7 @@ void Gameplay::onPendingDatagrams()
 
 void Gameplay::onPendingDatagrams2()
 {
+	auto _socket2 = static_cast<QUdpSocket *>(sender());
 	while (_socket2->hasPendingDatagrams())
 	{
 		QNetworkDatagram datagram = _socket2->receiveDatagram();

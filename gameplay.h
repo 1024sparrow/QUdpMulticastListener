@@ -16,7 +16,7 @@ private slots:
     void onPendingDatagrams2();
 
 private:
-    QUdpSocket *_socket, *_socket2;
+    //QUdpSocket *_socket, *_socket2;
 };
 
 #endif // GAMEPLAY_H
