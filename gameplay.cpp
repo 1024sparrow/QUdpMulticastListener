@@ -50,15 +50,15 @@ bool Gameplay::start()
 			{
 				if (socket->joinMulticastGroup(QHostAddress(oGroup), QNetworkInterface::interfaceFromName(oInterface)))
 				{
-					qDebug() << "SUBSCRIBED xxx.x.x.x first interface";
+					qDebug() << QString("SUBSCRIBED %1 interface '%2', port %3").arg(oGroup).arg(oInterface).arg(oPort);
 				}
 				else
 				{
-					qDebug() << "CAN NOT SUBSCRIBE xxx.x.x.x first interface" << socket->errorString();
+					qDebug() << QString("CAN NOT SUBSCRIBE  %1 interface '%2', port %3").arg(oGroup).arg(oInterface).arg(oPort);
 					//return false;
 				}
-				qDebug() << QString("LISTENING ON PORT %1 STARTED (interface '%2')").arg(oPort).arg(oInterface);
 			}
+			qDebug() << QString("LISTENING ON PORT %1 STARTED (interface '%2')").arg(oPort).arg(oInterface);
 		}
 	}
 
@@ -74,7 +74,12 @@ void Gameplay::onPendingDatagrams()
 		if (datagram.isValid())
 		{
 			//datagram.data();
-			qDebug() << "SOME DATA RECEIVED ON PORT " << datagram.destinationPort() << ". Interface " << QNetworkInterface::interfaceFromIndex(datagram.interfaceIndex()).name();
+			qDebug()
+				<< "SOME DATA RECEIVED ON PORT "
+				<< datagram.destinationPort()
+				<< ". Interface "
+				<< QNetworkInterface::interfaceFromIndex(datagram.interfaceIndex()).name()
+			;
 //			  qDebug() << datagram.data().toHex(' ');
 		}
 	}
